@@ -181,6 +181,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElse(null);
     }
 
+
     private void validateCreate(AccountCreateDTO accountCreateDTO) {
         validateCreateUsername(accountCreateDTO.getUsername());
         validateRole(accountCreateDTO.getRole());
@@ -229,9 +230,9 @@ public class AccountServiceImpl implements AccountService {
         // TODO
     }
 
-    private Optional<Account> findByUsername(String username) {
-        return accountRepository.findByUsername(username);
-    }
+//    private Optional<Account> findByUsername(String username) {
+//        return accountRepository.findByUsername(username);
+//    }
 
     @Override
     public List<AccountDTO> getAll(Expression expression) throws Exception {
