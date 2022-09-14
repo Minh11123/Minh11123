@@ -1,6 +1,5 @@
 package com.vti.rk25finalexam.service;
 
-import com.vti.rk25finalexam.common.Constants;
 import com.vti.rk25finalexam.common.Constants.ACCOUNT;
 import com.vti.rk25finalexam.common.Constants.IS_DELETED;
 import com.vti.rk25finalexam.entity.Account;
@@ -9,7 +8,6 @@ import com.vti.rk25finalexam.entity.dto.AccountCreateDTO;
 import com.vti.rk25finalexam.entity.dto.AccountDTO;
 import com.vti.rk25finalexam.entity.dto.AccountUpdateDTO;
 import com.vti.rk25finalexam.exception.RK25Exception;
-import com.vti.rk25finalexam.exception.Rk25Error;
 import com.vti.rk25finalexam.repository.AccountRepository;
 import com.vti.rk25finalexam.spec.AccountSpec;
 import com.vti.rk25finalexam.spec.Expression;
@@ -18,8 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.vti.rk25finalexam.spec.filter.IntegerFilter;
-import com.vti.rk25finalexam.utils.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
@@ -181,53 +177,24 @@ public class AccountServiceImpl implements AccountService {
                 .orElse(null);
     }
 
-
-
-
-
     private void validateCreate(AccountCreateDTO accountCreateDTO) {
-        validateCreateUsername(accountCreateDTO.getUsername());
+        validateUsername(accountCreateDTO.getUsername());
         validateRole(accountCreateDTO.getRole());
         validateDepartment(accountCreateDTO.getDepartmentId());
     }
 
     private void validateDepartment(Integer departmentId) {
-        Optional.ofNullable(departmentId)
-                .map(deptId -> {
-                    departmentService
-                            .getOne(departmentId)
-                            .orElseThrow(() -> new RK25Exception()
-                                            .rk25Error(new Rk25Error()
-                                                    .code("account.departmentId.isNotExisted")
-                                                    .param(departmentId)));
-                    return deptId;
-                }).orElseThrow(() -> new RK25Exception()
-                                        .rk25Error(new Rk25Error()
-                                                .code("account.departmentId.isNull")
-                                                .param(departmentId)));
     }
 
     private void validateRole(String role) {
-        if (Constants.ROLE.ADMIN.equals(role) ||
-                Constants.ROLE.EMPLOYEE.equals(role) ||
-                Constants.ROLE.MANAGER.equals(role)) {
-            return;
-        }
-        throw new RK25Exception()
-                    .rk25Error(new Rk25Error()
-                            .code("account.role.isNotValid")
-                            .param(role));
     }
 
-    private void validateCreateUsername(String username) {
+    private void validateUsername(String username) {
         // check username có tồn tại trong hệ thông
         findByUsername(username)
-                .map(account -> {
-                    throw new RK25Exception()
-                        .rk25Error(new Rk25Error()
-                                .code("account.username.usernameIsNotExists")
-                                .param(username));
-                });
+                .orElseThrow(() -> new RK25Exception()
+                        .code("account.username.idIsNotExists")
+                        .param(username));
 
         // check username không được chứa khoảng trắng
         // TODO
@@ -301,13 +268,6 @@ public class AccountServiceImpl implements AccountService {
                     .or(queryService.buildStringFilter(ACCOUNT.FIRST_NAME, criteria.getSearch()))
                     .or(queryService.buildStringFilter(ACCOUNT.LAST_NAME, criteria.getSearch()))
                     .or(queryService.buildStringFilter(ACCOUNT.ROLE, criteria.getSearch()));
-
-            if (Utils.checkStringAsDigit(criteria.getSearch().getContains())) {
-                Integer searchValue = Integer.valueOf(criteria.getSearch().getContains());
-                IntegerFilter integerFilter = new IntegerFilter();
-                integerFilter.setEquals(searchValue);
-                orSpec.or(queryService.buildIntegerFilter(ACCOUNT.ID, integerFilter));
-            }
             spec = spec.and(orSpec);
         }
         return spec;
