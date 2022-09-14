@@ -1,0 +1,22 @@
++ install heroku
+
++ login heroku:
+$ heroku login
+
++ Create a new app on heroku:
+$ heroku create <app_name>
+
++ Add code to git and push on heroku
+$ git push heroku <branch_name>
+
++ install db
+$ heroku addons:create cleardb:ignite -a <app_name>
+
++ import database command
+$ mysql -u user_name -p<password> -h <hostname> < <sql_file>
+
++ open app
+$ heroku open
+
++ view log
+$ heroku logs

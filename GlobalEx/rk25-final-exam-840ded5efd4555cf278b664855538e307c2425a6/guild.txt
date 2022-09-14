@@ -1,0 +1,64 @@
+Tạo Mysql container và đặt chung network với rk25-final-exam-container
+docker network create rk25-final-exam-network
+
+$ docker run --rm -d \
+-v rk25-final-exam-data: /var/lib/mysql \
+-v rk25-final-exam-config-deamond: /etc/mysql/conf.d \
+--name mysql-rk25-final-exam-container \
+-p 3306:3306 \
+-e MYSQL_ROOT_PASSWORD=root \
+-e MYSQL_DATABASE=rk25finaldb \
+--network rk25-final-exam-network \
+mysql:8.0.29
+
+Get docker networks:
+$ docker network ls
+
+Build spring boot app with Maven Wrapper
+./mvnw spring-boot:run
+This downloads the dependencies, builds and starts it
+
+Run this project in Docker:
+- Build docker image with Dockerfile
+
+$ docker build --tag rk25-final-exam .
+$ docker tag rk25-final-exam:latest rk25-final-exam:v1.0.0
+
+--- Push image to Docker Hub
++ Create a repository in docker hub
+
++ Rename own docker image
+$ docker tag rk25-final-exam:latest npnam0706/rk25-final-exam:v1.0.0
+
++ Login docker in cmd:
+$ docker login
+
++ Hoặc login in git bash:
+$ winpty docker login
+winpty enable TTY on Window. Useful for GitBash, Putty and MobaXTerm.
+
++ Push to the remote docker repository:
+$ docker push npnam0706/rk25-final-exam:v1.0.0
+
+--- Pull and start/run container
++ remove image in local:
+$ docker rmi -f 45ce702214f7
+
++ pull and start/run container
+Note: Chạy trong thư mục chứa code project vì
+trong Dockerfile ta copy các file của thư mục code vào container
+=> phải vào đúng thư mục chứa code để chạy câu lệnh dưới
+
+$ docker run \
+-dp 8081:8080 \ # run in detach mode (background): host(8081) <=> container(8080)
+--name rk25-final-exam-container \ # name container
+-v "$(pwd):/app" \ # map current dir vs /app dir of contanier: if change code in local => code in container is also updated
+--network rk25-final-exam-network \
+npnam0706/rk25-final-exam:v1.0.0
+
+
+Xem log của container:
+$ docker logs rk25-final-exam-container
+
+Update code and restart container
+$ docker restart rk25-final-exam-container
